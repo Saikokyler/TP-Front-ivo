@@ -1,156 +1,107 @@
 ---
 const { album } = Astro.props;
-const stars = '★'.repeat(album.rating) + '☆'.repeat(5 - album.rating);
+const searchQuery = `${album.title} ${album.artist}`;
 ---
 
-<article class="card" data-genre={album.genre} data-decade={album.decade} data-artist={album.artist}>
-  <div class="card__cover-wrap">
+<article
+  class="card"
+  data-genre={album.genre}
+  data-decade={album.decade}
+  data-search={searchQuery}
+>
+  <div class="card__img-wrap">
     <img
       class="card__cover"
-      src={album.cover}
-      alt={`Portada de ${album.title}`}
+      src="/placeholder.svg"
+      alt={`${album.title} — ${album.artist}`}
       loading="lazy"
-      onerror="this.src='/placeholder.jpg'"
     />
-    <div class="card__overlay">
-      <span class="card__catalog">{album.catalogNumber}</span>
-    </div>
+    <div class="card__badge">{album.year}</div>
   </div>
   <div class="card__body">
-    <div class="card__meta">
-      <span class="card__genre">{album.genre}</span>
-      <span class="card__year">{album.year}</span>
-    </div>
+    <p class="card__genre">{album.genre}</p>
     <h3 class="card__title">{album.title}</h3>
     <p class="card__artist">{album.artist}</p>
-    <p class="card__description">{album.description}</p>
-    <div class="card__footer">
-      <span class="card__stars" title={`${album.rating} de 5`}>{stars}</span>
-      <span class="card__tracks">{album.tracks} tracks</span>
-    </div>
+    <p class="card__desc">{album.description}</p>
+    <p class="card__catalog">{album.catalogNumber}</p>
   </div>
 </article>
 
 <style>
   .card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+    background: var(--bg-dark);
     display: flex;
     flex-direction: column;
+    transition: background var(--transition);
+    cursor: default;
   }
+  .card:hover { background: var(--bg-card); }
 
-  .card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 20px 40px rgba(0, 87, 184, 0.2);
-    border-color: var(--blue-note-blue);
-  }
-
-  .card__cover-wrap {
+  .card__img-wrap {
     position: relative;
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 1;
     overflow: hidden;
     background: #111;
   }
-
   .card__cover {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.4s ease;
-  }
-
-  .card:hover .card__cover {
-    transform: scale(1.05);
-  }
-
-  .card__overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 0.5rem 0.75rem;
-    background: linear-gradient(transparent, rgba(0,0,0,0.8));
     opacity: 0;
-    transition: opacity var(--transition);
+    transition: opacity 0.4s ease, transform 0.4s ease;
   }
+  .card__cover.loaded { opacity: 1; }
+  .card:hover .card__cover { transform: scale(1.04); }
 
-  .card:hover .card__overlay {
-    opacity: 1;
-  }
-
-  .card__catalog {
+  .card__badge {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    background: rgba(0,0,0,0.75);
+    color: var(--blue-note-light);
     font-size: 0.7rem;
-    color: var(--text-secondary);
-    letter-spacing: 0.1em;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    letter-spacing: 0.08em;
+    backdrop-filter: blur(4px);
   }
 
   .card__body {
     padding: 1rem;
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.3rem;
     flex: 1;
   }
-
-  .card__meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
   .card__genre {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.15em;
     color: var(--blue-note-light);
     font-weight: 600;
   }
-
-  .card__year {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-  }
-
   .card__title {
     font-family: var(--font-display);
-    font-size: 1.05rem;
+    font-size: 1rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: #fff;
     line-height: 1.2;
   }
-
   .card__artist {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--text-secondary);
   }
-
-  .card__description {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    line-height: 1.5;
-    flex: 1;
-  }
-
-  .card__footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 0.5rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--border);
-  }
-
-  .card__stars {
-    color: var(--blue-note-light);
-    font-size: 0.8rem;
-    letter-spacing: 0.05em;
-  }
-
-  .card__tracks {
+  .card__desc {
     font-size: 0.75rem;
     color: var(--text-muted);
+    line-height: 1.5;
+    margin-top: 0.25rem;
+  }
+  .card__catalog {
+    font-size: 0.65rem;
+    color: #333;
+    letter-spacing: 0.08em;
+    margin-top: auto;
+    padding-top: 0.75rem;
   }
 </style>

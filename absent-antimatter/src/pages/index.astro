@@ -1,5 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import AlbumCard from '../components/AlbumCard.astro';
+import { albums } from '../data/albums.js';
 ---
 
 <Layout>
@@ -15,11 +17,27 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </header>
 
-  <!-- Secciones próximas -->
-  <main id="catalogo"></main>
+  <!-- CATÁLOGO -->
+  <main class="catalog" id="catalogo">
+    <div class="container">
+      <div class="catalog__header">
+        <h2 class="catalog__title">Discografía selecta</h2>
+        <p class="catalog__count"><span id="count">{albums.length}</span> álbumes</p>
+      </div>
+
+      <div class="catalog__grid" id="album-grid">
+        {albums.map(album => <AlbumCard album={album} />)}
+      </div>
+
+      <p class="catalog__empty hidden" id="empty-msg">
+        No se encontraron álbumes con ese criterio.
+      </p>
+    </div>
+  </main>
 </Layout>
 
 <style>
+  /* HERO */
   .hero {
     background: linear-gradient(135deg, #000 0%, #001a3d 60%, #0057b8 100%);
     min-height: 100vh;
@@ -29,7 +47,6 @@ import Layout from '../layouts/Layout.astro';
     position: relative;
     overflow: hidden;
   }
-
   .hero::after {
     content: 'BN';
     position: absolute;
@@ -38,11 +55,10 @@ import Layout from '../layouts/Layout.astro';
     font-family: var(--font-display);
     font-size: 28rem;
     font-weight: 900;
-    color: rgba(255, 255, 255, 0.03);
+    color: rgba(255,255,255,0.03);
     pointer-events: none;
     user-select: none;
   }
-
   .hero__label {
     font-size: 0.8rem;
     letter-spacing: 0.2em;
@@ -50,7 +66,6 @@ import Layout from '../layouts/Layout.astro';
     color: var(--blue-note-light);
     margin-bottom: 1.5rem;
   }
-
   .hero__title {
     font-family: var(--font-display);
     font-size: clamp(4rem, 12vw, 10rem);
@@ -58,11 +73,7 @@ import Layout from '../layouts/Layout.astro';
     line-height: 1;
     margin-bottom: 1.5rem;
   }
-
-  .hero__title span {
-    color: var(--blue-note-light);
-  }
-
+  .hero__title span { color: var(--blue-note-light); }
   .hero__subtitle {
     font-size: 1.1rem;
     color: var(--text-secondary);
@@ -70,7 +81,6 @@ import Layout from '../layouts/Layout.astro';
     margin-bottom: 2.5rem;
     line-height: 1.7;
   }
-
   .hero__cta {
     display: inline-block;
     background: var(--blue-note-blue);
@@ -82,9 +92,40 @@ import Layout from '../layouts/Layout.astro';
     letter-spacing: 0.05em;
     transition: background var(--transition), transform var(--transition);
   }
-
   .hero__cta:hover {
     background: var(--blue-note-light);
     transform: translateY(-2px);
   }
+
+  /* CATÁLOGO */
+  .catalog {
+    padding: 5rem 0;
+  }
+  .catalog__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2rem;
+  }
+  .catalog__title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 700;
+  }
+  .catalog__count {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+  .catalog__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.5rem;
+  }
+  .catalog__empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 4rem 0;
+    font-size: 1rem;
+  }
+  .hidden { display: none; }
 </style>
