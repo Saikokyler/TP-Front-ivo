@@ -1,17 +1,90 @@
 ---
-
+import Layout from '../layouts/Layout.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout>
+  <!-- HERO -->
+  <header class="hero">
+    <div class="container">
+      <div class="hero__label">Est. 1939 · Nueva York</div>
+      <h1 class="hero__title">Blue Note<br /><span>Records</span></h1>
+      <p class="hero__subtitle">
+        Una selección de 30 grabaciones esenciales del sello de jazz más influyente de la historia.
+      </p>
+      <a href="#catalogo" class="hero__cta">Ver catálogo</a>
+    </div>
+  </header>
+
+  <!-- Secciones próximas -->
+  <main id="catalogo"></main>
+</Layout>
+
+<style>
+  .hero {
+    background: linear-gradient(135deg, #000 0%, #001a3d 60%, #0057b8 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 6rem 0 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::after {
+    content: 'BN';
+    position: absolute;
+    right: -2rem;
+    bottom: -4rem;
+    font-family: var(--font-display);
+    font-size: 28rem;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.03);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .hero__label {
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--blue-note-light);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero__title {
+    font-family: var(--font-display);
+    font-size: clamp(4rem, 12vw, 10rem);
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero__title span {
+    color: var(--blue-note-light);
+  }
+
+  .hero__subtitle {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 480px;
+    margin-bottom: 2.5rem;
+    line-height: 1.7;
+  }
+
+  .hero__cta {
+    display: inline-block;
+    background: var(--blue-note-blue);
+    color: #fff;
+    padding: 0.9rem 2.2rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.05em;
+    transition: background var(--transition), transform var(--transition);
+  }
+
+  .hero__cta:hover {
+    background: var(--blue-note-light);
+    transform: translateY(-2px);
+  }
+</style>
