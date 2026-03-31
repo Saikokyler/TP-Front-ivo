@@ -1,107 +1,104 @@
 ---
 const { album } = Astro.props;
-const searchQuery = `${album.title} ${album.artist}`;
 ---
 
 <article
   class="card"
   data-genre={album.genre}
   data-decade={album.decade}
-  data-search={searchQuery}
+  data-artist={album.artist}
+  data-album={album.title}
 >
   <div class="card__img-wrap">
-    <img
-      class="card__cover"
-      src="/placeholder.svg"
-      alt={`${album.title} — ${album.artist}`}
-      loading="lazy"
-    />
-    <div class="card__badge">{album.year}</div>
+    <img class="card__img" src="/placeholder.svg" alt={album.title} loading="lazy" />
+    <div class="card__year">{album.year}</div>
   </div>
   <div class="card__body">
-    <p class="card__genre">{album.genre}</p>
+    <span class="card__genre">{album.genre}</span>
     <h3 class="card__title">{album.title}</h3>
     <p class="card__artist">{album.artist}</p>
     <p class="card__desc">{album.description}</p>
-    <p class="card__catalog">{album.catalogNumber}</p>
+    <span class="card__num">{album.catalogNumber}</span>
   </div>
 </article>
 
 <style>
-  .card {
-    background: var(--bg-dark);
-    display: flex;
-    flex-direction: column;
-    transition: background var(--transition);
-    cursor: default;
-  }
-  .card:hover { background: var(--bg-card); }
+.card {
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  transition: background var(--ease);
+}
+.card:hover { background: var(--bg-hover); }
 
-  .card__img-wrap {
-    position: relative;
-    aspect-ratio: 1;
-    overflow: hidden;
-    background: #111;
-  }
-  .card__cover {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0;
-    transition: opacity 0.4s ease, transform 0.4s ease;
-  }
-  .card__cover.loaded { opacity: 1; }
-  .card:hover .card__cover { transform: scale(1.04); }
+.card__img-wrap {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #0d0d0d;
+}
+.card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.5s ease, transform 0.4s ease;
+}
+.card__img.loaded { opacity: 1; }
+.card:hover .card__img { transform: scale(1.04); }
 
-  .card__badge {
-    position: absolute;
-    top: 0.6rem;
-    right: 0.6rem;
-    background: rgba(0,0,0,0.75);
-    color: var(--blue-note-light);
-    font-size: 0.7rem;
-    font-weight: 600;
-    padding: 0.25rem 0.5rem;
-    letter-spacing: 0.08em;
-    backdrop-filter: blur(4px);
-  }
+.card__year {
+  position: absolute;
+  bottom: 0.6rem;
+  right: 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--blue-light);
+  background: rgba(0,0,0,0.7);
+  padding: 0.2rem 0.45rem;
+  backdrop-filter: blur(4px);
+  letter-spacing: 0.05em;
+}
 
-  .card__body {
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    flex: 1;
-  }
-  .card__genre {
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    color: var(--blue-note-light);
-    font-weight: 600;
-  }
-  .card__title {
-    font-family: var(--font-display);
-    font-size: 1rem;
-    font-weight: 700;
-    color: #fff;
-    line-height: 1.2;
-  }
-  .card__artist {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-  }
-  .card__desc {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    line-height: 1.5;
-    margin-top: 0.25rem;
-  }
-  .card__catalog {
-    font-size: 0.65rem;
-    color: #333;
-    letter-spacing: 0.08em;
-    margin-top: auto;
-    padding-top: 0.75rem;
-  }
+.card__body {
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+.card__genre {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--blue-light);
+}
+.card__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.card__artist {
+  font-size: 0.78rem;
+  color: var(--text-sub);
+  font-weight: 500;
+}
+.card__desc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin-top: 0.3rem;
+}
+.card__num {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: #222;
+  margin-top: auto;
+  padding-top: 0.6rem;
+  letter-spacing: 0.08em;
+}
 </style>
