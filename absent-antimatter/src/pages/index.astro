@@ -107,8 +107,12 @@ const LASTFM_KEY = 'aa091ec84d11e991188fc1e51a33e9ca';
   async function loadCover(card) {
     const artist = card.dataset.artist;
     const album  = card.dataset.album;
+    // Buscar el álbum en la data para obtener lastfmTitle si existe
+    const albumData = albums.find(a => a.title === album && a.artist === artist);
+    const searchTitle = albumData?.lastfmTitle || album;
+    
     try {
-      const url = `https://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=${LASTFM_KEY}&artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(album)}&format=json`;
+      const url = `https://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=${LASTFM_KEY}&artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(searchTitle)}&format=json`;
       const res  = await fetch(url);
       const data = await res.json();
       const images = data?.album?.image;

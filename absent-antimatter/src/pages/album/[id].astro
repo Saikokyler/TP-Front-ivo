@@ -1,0 +1,510 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { albums } from '../../data/albums.js';
+
+export async function getStaticPaths() {
+  return albums.map((album) => ({
+    params: { id: album.id.toString() },
+    props: { album },
+  }));
+}
+
+const { album } = Astro.props;
+const LASTFM_KEY = 'aa091ec84d11e991188fc1e51a33e9ca';
+
+// Obtener álbumes relacionados (del mismo artista)
+const relatedAlbums = albums
+  .filter((a) => a.artist === album.artist && a.id !== album.id)
+  .slice(0, 3);
+---
+
+<Layout title={`${album.title} — ${album.artist}`}>
+  <div class="album-detail">
+    <div class="container">
+      <!-- Back button -->
+      <a href="/" class="btn-back">← Volver al catálogo</a>
+
+      <div class="album-hero">
+        <div class="album-cover">
+          <img
+            id="album-image"
+            class="album-img"
+            src="/placeholder.svg"
+            alt={album.title}
+            data-artist={album.artist}
+            data-album={album.title}
+          />
+        </div>
+
+        <div class="album-info">
+          <p class="album-kicker">{album.genre} • {album.year}</p>
+          <h1 class="album-title">{album.title}</h1>
+          <p class="album-artist">{album.artist}</p>
+
+          <div class="album-meta">
+            <div class="meta-item">
+              <span class="meta-label">Catálogo</span>
+              <span class="meta-value">{album.catalogNumber}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Periodo</span>
+              <span class="meta-value">{album.decade}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Tracks</span>
+              <span class="meta-value">{album.tracks}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Rating</span>
+              <span class="meta-value">{'★'.repeat(album.rating)}</span>
+            </div>
+          </div>
+
+          <p class="album-description">{album.description}</p>
+
+          {album.trivia && (
+            <div class="album-trivia">
+              <h3 class="trivia-title">Trivia</h3>
+              <p class="trivia-question">{album.trivia.pregunta}</p>
+              <div class="trivia-options">
+                {album.trivia.opciones.map((opcion, index) => (
+                  <button
+                    class="trivia-option"
+                    data-index={index}
+                    data-correct={opcion.esCorrecta}
+                  >
+                    {opcion.texto}
+                  </button>
+                ))}
+              </div>
+              <div class="trivia-result hidden" id="trivia-result">
+                <p id="trivia-message"></p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <!-- Related Albums -->
+      {relatedAlbums.length > 0 && (
+        <section class="related-section">
+          <h2>Más de {album.artist}</h2>
+          <div class="related-grid">
+            {relatedAlbums.map((relatedAlbum) => (
+              <a href={`/album/${relatedAlbum.id}`} class="related-card">
+                <div class="related-cover">
+                  <img
+                    src="/placeholder.svg"
+                    alt={relatedAlbum.title}
+                    data-artist={relatedAlbum.artist}
+                    data-album={relatedAlbum.title}
+                  />
+                </div>
+                <div class="related-info">
+                  <h3>{relatedAlbum.title}</h3>
+                  <p>{relatedAlbum.year}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  </div>
+</Layout>
+
+<script define:vars={{ LASTFM_KEY, album, albums }}>
+  // Intentar obtener imagen con diferentes nombres para casos especiales
+  async function fetchAlbumImage(artist, searchTitle) {
+    const titles = [searchTitle];
+    
+    // Para "In And Out" de Joe Henderson, intentar variaciones
+    if (searchTitle.toLowerCase().includes('in') && searchTitle.toLowerCase().includes('out')) {
+      titles.push('In And Out', 'In n Out', "In 'n' Out");
+    }
+    
+    for (const title of titles) {
+      try {
+        const url = `https://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=${LASTFM_KEY}&artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(title)}&format=json`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const images = data?.album?.image;
+
+        if (images && images.length > 0) {
+          // Obtener la imagen más grande disponible
+          let largestImage = '';
+          let largestSize = 0;
+          
+          for (const img of images) {
+            const src = img['#text'];
+            if (src && src.length > largestSize) {
+              largestSize = src.length;
+              largestImage = src;
+            }
+          }
+          
+          if (largestImage) {
+            return largestImage;
+          }
+        }
+      } catch (err) {
+        console.error(`Error fetching ${title}:`, err);
+      }
+    }
+    
+    return null;
+  }
+
+  async function loadCover() {
+    const img = document.getElementById('album-image');
+    const artist = img.dataset.artist;
+    const titleFromData = img.dataset.album;
+    
+    // Usar lastfmTitle si está disponible
+    const albumData = albums.find(a => a.title === titleFromData && a.artist === artist);
+    const searchTitle = albumData?.lastfmTitle || titleFromData;
+
+    const src = await fetchAlbumImage(artist, searchTitle);
+    if (src) {
+      img.src = src;
+      img.classList.add('loaded');
+    }
+  }
+
+  // Load covers for related albums
+  function loadRelatedCovers() {
+    document.querySelectorAll('.related-cover img').forEach(async (img) => {
+      const artist = img.dataset.artist;
+      const titleFromData = img.dataset.album;
+      
+      // Usar lastfmTitle si está disponible
+      const albumData = albums.find(a => a.title === titleFromData && a.artist === artist);
+      const searchTitle = albumData?.lastfmTitle || titleFromData;
+
+      const src = await fetchAlbumImage(artist, searchTitle);
+      if (src) {
+        img.src = src;
+        img.classList.add('loaded');
+      }
+    });
+  }
+
+  // Trivia Game
+  function initTrivia() {
+    const triviaOptions = document.querySelectorAll('.trivia-option');
+    const triviaResult = document.getElementById('trivia-result');
+    const triviaMessage = document.getElementById('trivia-message');
+
+    triviaOptions.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const isCorrect = btn.dataset.correct === 'true';
+        
+        // Deshabilitar todos los botones
+        triviaOptions.forEach(b => b.disabled = true);
+
+        if (isCorrect) {
+          btn.classList.add('correct');
+          triviaMessage.innerHTML = '✓ ¡Correcto! Excelente.';
+          triviaResult.classList.remove('hidden');
+        } else {
+          btn.classList.add('incorrect');
+          const correctOption = Array.from(triviaOptions).find(b => b.dataset.correct === 'true');
+          triviaMessage.innerHTML = `✗ Incorrecto. La respuesta correcta es: <strong>${correctOption.textContent}</strong>`;
+          triviaResult.classList.remove('hidden');
+        }
+      });
+    });
+  }
+
+  loadCover();
+  loadRelatedCovers();
+  initTrivia();
+</script>
+
+<style>
+  .album-detail {
+    min-height: 100vh;
+    padding: 10rem 0 6rem;
+  }
+
+  .btn-back {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--blue-light);
+    margin-bottom: 3rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    transition: all var(--ease);
+  }
+
+  .btn-back:hover {
+    border-color: var(--blue-light);
+    background: rgba(77, 148, 255, 0.05);
+  }
+
+  .album-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    margin-bottom: 5rem;
+    align-items: start;
+  }
+
+  .album-cover {
+    position: sticky;
+    top: 8rem;
+  }
+
+  .album-img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .album-img.loaded {
+    opacity: 1;
+  }
+
+  .album-kicker {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--blue-light);
+    letter-spacing: 0.15em;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+
+  .album-title {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+
+  .album-artist {
+    font-size: 1.3rem;
+    color: var(--text-sub);
+    margin-bottom: 2rem;
+    font-weight: 500;
+  }
+
+  .album-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    padding: 2rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .meta-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .meta-value {
+    font-size: 1.1rem;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .album-description {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text-sub);
+  }
+
+  .album-trivia {
+    margin-top: 2.5rem;
+    padding: 2rem;
+    background: rgba(77, 148, 255, 0.05);
+    border: 1px solid var(--border-hover);
+    border-radius: 4px;
+  }
+
+  .trivia-title {
+    font-size: 0.9rem;
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--blue-light);
+    margin-bottom: 1.2rem;
+  }
+
+  .trivia-question {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+  }
+
+  .trivia-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .trivia-option {
+    text-align: left;
+    padding: 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all var(--ease);
+    border-radius: 2px;
+  }
+
+  .trivia-option:hover:not(:disabled) {
+    background: var(--bg-hover);
+    border-color: var(--blue-light);
+  }
+
+  .trivia-option:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  .trivia-option.correct {
+    background: rgba(76, 175, 80, 0.1);
+    border-color: #4caf50;
+    color: #4caf50;
+  }
+
+  .trivia-option.incorrect {
+    background: rgba(244, 67, 54, 0.1);
+    border-color: #f44336;
+    color: #f44336;
+  }
+
+  .trivia-result {
+    padding: 1rem;
+    background: rgba(77, 148, 255, 0.1);
+    border-left: 3px solid var(--blue-light);
+    border-radius: 2px;
+    font-size: 0.95rem;
+    color: var(--text-sub);
+  }
+
+  .trivia-result p {
+    margin: 0;
+  }
+
+  .trivia-result strong {
+    color: var(--text);
+  }
+
+  /* Related Section */
+  .related-section {
+    margin-top: 5rem;
+    padding-top: 3rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .related-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    color: var(--text);
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .related-card {
+    text-decoration: none;
+    transition: transform var(--ease);
+  }
+
+  .related-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .related-cover {
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    margin-bottom: 1rem;
+  }
+
+  .related-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .related-cover img.loaded {
+    opacity: 1;
+  }
+
+  .related-info h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+  }
+
+  .related-info p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .album-detail {
+      padding: 6rem 0 4rem;
+    }
+
+    .album-hero {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .album-cover {
+      position: relative;
+      top: 0;
+    }
+
+    .album-title {
+      font-size: 2rem;
+    }
+
+    .album-artist {
+      font-size: 1.1rem;
+    }
+
+    .album-meta {
+      grid-template-columns: 1fr;
+    }
+
+    .related-grid {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+  }
+</style>

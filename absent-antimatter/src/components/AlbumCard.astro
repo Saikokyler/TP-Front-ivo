@@ -2,32 +2,40 @@
 const { album } = Astro.props;
 ---
 
-<article
-  class="card"
-  data-genre={album.genre}
-  data-decade={album.decade}
-  data-artist={album.artist}
-  data-album={album.title}
->
-  <div class="card__img-wrap">
-    <img class="card__img" src="/placeholder.svg" alt={album.title} loading="lazy" />
-    <div class="card__year">{album.year}</div>
-  </div>
-  <div class="card__body">
-    <span class="card__genre">{album.genre}</span>
-    <h3 class="card__title">{album.title}</h3>
-    <p class="card__artist">{album.artist}</p>
-    <p class="card__desc">{album.description}</p>
-    <span class="card__num">{album.catalogNumber}</span>
-  </div>
-</article>
+<a href={`/album/${album.id}`} class="card-link">
+  <article
+    class="card"
+    data-genre={album.genre}
+    data-decade={album.decade}
+    data-artist={album.artist}
+    data-album={album.title}
+  >
+    <div class="card__img-wrap">
+      <img class="card__img" src="/placeholder.svg" alt={album.title} loading="lazy" />
+      <div class="card__year">{album.year}</div>
+    </div>
+    <div class="card__body">
+      <span class="card__genre">{album.genre}</span>
+      <h3 class="card__title">{album.title}</h3>
+      <p class="card__artist">{album.artist}</p>
+      <span class="card__num">{album.catalogNumber}</span>
+    </div>
+  </article>
+</a>
 
 <style>
+.card-link {
+  text-decoration: none;
+  display: block;
+  height: 100%;
+}
+
 .card {
   background: var(--bg);
   display: flex;
   flex-direction: column;
   transition: background var(--ease);
+  height: 100%;
 }
 .card:hover { background: var(--bg-hover); }
 
@@ -86,12 +94,6 @@ const { album } = Astro.props;
   font-size: 0.78rem;
   color: var(--text-sub);
   font-weight: 500;
-}
-.card__desc {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  line-height: 1.55;
-  margin-top: 0.3rem;
 }
 .card__num {
   font-family: var(--mono);
