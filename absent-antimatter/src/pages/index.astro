@@ -1,121 +1,77 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import AlbumCard from '../components/AlbumCard.astro';
-import { albums } from '../data/albums.js';
+import { albums, genres, artists } from '../data/albums.js';
 
 const LASTFM_KEY = 'aa091ec84d11e991188fc1e51a33e9ca';
 ---
 
 <Layout>
-
-  <!-- NAV -->
-  <nav class="nav">
-    <div class="container nav__inner">
-      <div class="nav__logo">
-        <div class="nav__logo-mark">BN</div>
-        <span class="nav__logo-text">Blue Note</span>
-      </div>
-      <span class="nav__tag">1939 — Nueva York</span>
-    </div>
-  </nav>
-
-  <!-- HERO -->
-  <header class="hero">
-    <div class="container hero__inner">
-      <div class="hero__left">
-        <p class="hero__kicker">/ Archivo selectivo</p>
-        <h1 class="hero__title">
-          Blue<br/>
-          <em>Note</em>
-        </h1>
-        <p class="hero__body">
-          Treinta grabaciones esenciales. Hard bop, soul jazz, post-bop y vanguardia.
-          El sonido de una era.
+  <main class="page">
+    <section class="intro">
+      <div class="container intro__inner">
+        <p class="intro__eyebrow">Blue Note catalog</p>
+        <h1 class="intro__title">Un catalogo simple de jazz para recorrer 30 albumes esenciales.</h1>
+        <p class="intro__text">
+          Portadas, datos breves y una trivia corta por album.
         </p>
-        <a href="#catalogo" class="hero__btn">Ver catálogo</a>
-      </div>
-      <div class="hero__right">
-        <div class="hero__circle">
-          <span>30</span>
-          <small>álbumes</small>
-        </div>
-          <div class="stat">
-            <strong>6</strong>
-            <span>géneros</span>
-          </div>
-          <div class="stat">
-            <strong>18</strong>
-            <span>artistas</span>
-          </div>
+        <div class="intro__stats">
+          <span>{albums.length} albumes</span>
+          <span>{genres.length} generos</span>
+          <span>{artists.length} artistas</span>
         </div>
       </div>
-    </div>
-    <div class="hero__bg-text">BLUE NOTE</div>
-  </header>
+    </section>
 
-  <!-- CATÁLOGO -->
-  <section class="catalog" id="catalogo">
-    <div class="container">
-
-      <div class="toolbar">
-        <input
-          id="search"
-          class="toolbar__search"
-          type="text"
-          placeholder="Buscar álbum o artista..."
-          autocomplete="off"
-        />
-        <div class="toolbar__selects">
+    <section class="catalog" id="catalogo">
+      <div class="container">
+        <div class="toolbar">
+          <input
+            id="search"
+            class="toolbar__search"
+            type="text"
+            placeholder="Buscar album o artista..."
+            autocomplete="off"
+          />
           <select id="filter-genre" class="toolbar__select">
-            <option value="">Género</option>
+            <option value="">Genero</option>
             <option>Hard Bop</option>
             <option>Soul Jazz</option>
             <option>Post-Bop</option>
             <option>Avant-Garde</option>
           </select>
           <select id="filter-decade" class="toolbar__select">
-            <option value="">Época</option>
+            <option value="">Epoca</option>
             <option>1950s</option>
             <option>1960s</option>
             <option>1970s</option>
           </select>
+          <span class="toolbar__count"><span id="count">{albums.length}</span> resultados</span>
         </div>
-        <span class="toolbar__count"><span id="count">{albums.length}</span> resultados</span>
+
+        <div class="grid" id="album-grid">
+          {albums.map((album) => <AlbumCard album={album} />)}
+        </div>
+
+        <p class="no-results hidden" id="empty-msg">Sin resultados.</p>
       </div>
-
-      <div class="grid" id="album-grid">
-        {albums.map(album => <AlbumCard album={album} />)}
-      </div>
-
-      <p class="no-results hidden" id="empty-msg">Sin resultados.</p>
-    </div>
-  </section>
-
-  <!-- FOOTER -->
-  <footer class="footer">
-    <div class="container footer__inner">
-      <div class="footer__logo">BN</div>
-      <p>Blue Note Records </p>
-    </div>
-  </footer>
-
+    </section>
+  </main>
 </Layout>
 
 <script define:vars={{ albums, LASTFM_KEY }}>
-
-  // ── COVERS via Last.fm ──────────────────────────────────────────
   async function loadCover(card) {
     const artist = card.dataset.artist;
-    const album  = card.dataset.album;
-    // Buscar el álbum en la data para obtener lastfmTitle si existe
-    const albumData = albums.find(a => a.title === album && a.artist === artist);
+    const album = card.dataset.album;
+    const albumData = albums.find((entry) => entry.title === album && entry.artist === artist);
     const searchTitle = albumData?.lastfmTitle || album;
-    
+
     try {
       const url = `https://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=${LASTFM_KEY}&artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(searchTitle)}&format=json`;
-      const res  = await fetch(url);
+      const res = await fetch(url);
       const data = await res.json();
       const images = data?.album?.image;
+
       if (images) {
         const src = images[images.length - 1]['#text'];
         if (src) {
@@ -131,24 +87,26 @@ const LASTFM_KEY = 'aa091ec84d11e991188fc1e51a33e9ca';
     document.querySelectorAll('.card[data-artist]').forEach(loadCover);
   }
 
-  // ── FILTROS ────────────────────────────────────────────────────
   function filter() {
-    const q     = document.getElementById('search').value.toLowerCase();
+    const q = document.getElementById('search').value.toLowerCase();
     const genre = document.getElementById('filter-genre').value;
-    const decade= document.getElementById('filter-decade').value;
-    let n = 0;
-    document.querySelectorAll('.card').forEach(c => {
-      const title  = c.querySelector('.card__title').textContent.toLowerCase();
-      const artist = c.querySelector('.card__artist').textContent.toLowerCase();
-      const ok =
+    const decade = document.getElementById('filter-decade').value;
+    let count = 0;
+
+    document.querySelectorAll('.card').forEach((card) => {
+      const title = card.querySelector('.card__title').textContent.toLowerCase();
+      const artist = card.querySelector('.card__artist').textContent.toLowerCase();
+      const visible =
         (title.includes(q) || artist.includes(q)) &&
-        (!genre  || c.dataset.genre  === genre)  &&
-        (!decade || c.dataset.decade === decade);
-      c.style.display = ok ? '' : 'none';
-      if (ok) n++;
+        (!genre || card.dataset.genre === genre) &&
+        (!decade || card.dataset.decade === decade);
+
+      card.style.display = visible ? '' : 'none';
+      if (visible) count += 1;
     });
-    document.getElementById('count').textContent = n;
-    document.getElementById('empty-msg').classList.toggle('hidden', n > 0);
+
+    document.getElementById('count').textContent = count;
+    document.getElementById('empty-msg').classList.toggle('hidden', count > 0);
   }
 
   document.getElementById('search').addEventListener('input', filter);
@@ -159,272 +117,119 @@ const LASTFM_KEY = 'aa091ec84d11e991188fc1e51a33e9ca';
 </script>
 
 <style>
-/* NAV */
-.nav {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 100;
-  padding: 1.2rem 0;
-  background: rgba(8,8,8,0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-}
-.nav__inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.nav__logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.nav__logo-mark {
-  width: 36px;
-  height: 36px;
-  background: var(--blue);
-  color: #fff;
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  letter-spacing: 0.05em;
-}
-.nav__logo-text {
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-}
-.nav__tag {
-  font-family: var(--mono);
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  letter-spacing: 0.1em;
-}
+  .page {
+    padding: 3rem 0 4rem;
+  }
 
-/* HERO */
-.hero {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  padding: 8rem 0 5rem;
-  position: relative;
-  overflow: hidden;
-  border-bottom: 1px solid var(--border);
-  background-color: #03080f;
-  background-image:
-    radial-gradient(ellipse 80% 60% at 60% 40%, rgba(0, 82, 204, 0.4) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 40% at 15% 80%, rgba(0, 20, 60, 0.5) 0%, transparent 60%);
-}
-.hero__inner {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 4rem;
-  align-items: center;
-  position: relative;
-  z-index: 2;
-}
-.hero__kicker {
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  color: var(--blue-light);
-  letter-spacing: 0.15em;
-  margin-bottom: 1.5rem;
-}
-.hero__title {
-  font-size: clamp(5rem, 13vw, 11rem);
-  font-weight: 700;
-  line-height: 0.9;
-  margin-bottom: 2rem;
-  letter-spacing: -0.03em;
-}
-.hero__title em {
-  font-style: normal;
-  color: var(--blue-light);
-}
-.hero__body {
-  font-size: 1rem;
-  color: var(--text-sub);
-  max-width: 380px;
-  line-height: 1.8;
-  margin-bottom: 2.5rem;
-}
-.hero__btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--blue);
-  color: #fff;
-  padding: 0.8rem 1.8rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  transition: background var(--ease), transform var(--ease);
-}
-.hero__btn:hover {
-  background: var(--blue-light);
-  transform: translateY(-2px);
-}
-.hero__right {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-}
-.hero__circle {
-  width: 160px;
-  height: 160px;
-  border: 1px solid var(--border-hover);
-  border-radius: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.2rem;
-}
-.hero__circle span {
-  font-size: 3.5rem;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--blue-light);
-}
-.hero__circle small {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.hero__stats {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  width: 100%;
-}
-.stat {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
-}
-.stat strong {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--text);
-}
-.stat span {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-.hero__bg-text {
-  position: absolute;
-  bottom: -3rem;
-  left: 0;
-  font-size: clamp(6rem, 20vw, 18rem);
-  font-weight: 700;
-  color: rgba(255,255,255,0.02);
-  white-space: nowrap;
-  user-select: none;
-  pointer-events: none;
-  letter-spacing: -0.05em;
-  z-index: 1;
-}
+  .intro {
+    padding: 1rem 0 2.5rem;
+  }
 
-/* TOOLBAR */
-.catalog { padding: 5rem 0 6rem; }
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid var(--border);
-}
-.toolbar__search {
-  flex: 1;
-  min-width: 200px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  padding: 0.6rem 1rem;
-  color: var(--text);
-  font-family: var(--font);
-  font-size: 0.9rem;
-  outline: none;
-  transition: border-color var(--ease);
-}
-.toolbar__search:focus { border-color: var(--blue); }
-.toolbar__search::placeholder { color: var(--text-muted); }
-.toolbar__selects { display: flex; gap: 0.6rem; }
-.toolbar__select {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  padding: 0.6rem 1rem;
-  color: var(--text);
-  font-family: var(--font);
-  font-size: 0.85rem;
-  outline: none;
-  cursor: pointer;
-  transition: border-color var(--ease);
-}
-.toolbar__select:focus { border-color: var(--blue); }
-.toolbar__count {
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
+  .intro__inner {
+    max-width: 820px;
+  }
 
-/* GRID */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1px;
-  background: var(--border);
-  outline: 1px solid var(--border);
-}
-.no-results {
-  text-align: center;
-  color: var(--text-muted);
-  font-family: var(--mono);
-  padding: 5rem 0;
-  font-size: 0.85rem;
-}
+  .intro__eyebrow {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--blue-light);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
 
-/* FOOTER */
-.footer {
-  border-top: 1px solid var(--border);
-  padding: 2.5rem 0;
-}
-.footer__inner {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-.footer__logo {
-  font-family: var(--mono);
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--blue);
-  border: 1px solid var(--blue);
-  padding: 0.3rem 0.6rem;
-  letter-spacing: 0.1em;
-}
-.footer p {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  letter-spacing: 0.04em;
-}
+  .intro__title {
+    font-size: clamp(2.1rem, 5vw, 4rem);
+    line-height: 1.05;
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
 
-/* RESPONSIVE */
-@media (max-width: 768px) {
-  .hero__inner { grid-template-columns: 1fr; }
-  .hero__right { display: none; }
-  .toolbar__selects { flex-wrap: wrap; }
-  .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
-}
+  .intro__text {
+    max-width: 640px;
+    color: var(--text-sub);
+    font-size: 1rem;
+  }
+
+  .intro__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .intro__stats span {
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    padding: 0.45rem 0.75rem;
+    font-size: 0.8rem;
+    color: var(--text-sub);
+  }
+
+  .catalog {
+    padding-top: 1rem;
+  }
+
+  .toolbar {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) repeat(2, minmax(140px, 180px)) auto;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .toolbar__search,
+  .toolbar__select {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.8rem 0.95rem;
+    font-size: 0.95rem;
+    font-family: var(--font);
+  }
+
+  .toolbar__search:focus,
+  .toolbar__select:focus {
+    outline: none;
+    border-color: var(--blue-light);
+  }
+
+  .toolbar__count {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 1rem;
+  }
+
+  .no-results {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 3rem 0;
+    font-family: var(--mono);
+  }
+
+  @media (max-width: 780px) {
+    .page {
+      padding-top: 2rem;
+    }
+
+    .toolbar {
+      grid-template-columns: 1fr;
+    }
+
+    .toolbar__count {
+      justify-self: start;
+    }
+
+    .grid {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+  }
 </style>

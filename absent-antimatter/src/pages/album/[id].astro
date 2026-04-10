@@ -11,24 +11,19 @@ export async function getStaticPaths() {
 
 const { album } = Astro.props;
 const LASTFM_KEY = 'aa091ec84d11e991188fc1e51a33e9ca';
-
-// Obtener álbumes relacionados (del mismo artista)
-const relatedAlbums = albums
-  .filter((a) => a.artist === album.artist && a.id !== album.id)
-  .slice(0, 3);
+const relatedAlbums = albums.filter((entry) => entry.artist === album.artist && entry.id !== album.id).slice(0, 3);
 ---
 
-<Layout title={`${album.title} — ${album.artist}`}>
-  <div class="album-detail">
+<Layout title={`${album.title} - ${album.artist}`}>
+  <main class="album-page">
     <div class="container">
-      <!-- Back button -->
-      <a href="/" class="btn-back">← Volver al catálogo</a>
+      <a href="/" class="back-link">&larr; Volver</a>
 
-      <div class="album-hero">
+      <section class="album-main">
         <div class="album-cover">
           <img
             id="album-image"
-            class="album-img"
+            class="album-image"
             src="/placeholder.svg"
             alt={album.title}
             data-artist={album.artist}
@@ -36,73 +31,74 @@ const relatedAlbums = albums
           />
         </div>
 
-        <div class="album-info">
-          <p class="album-kicker">{album.genre} • {album.year}</p>
-          <h1 class="album-title">{album.title}</h1>
+        <div class="album-content">
+          <p class="album-kicker">{album.genre} - {album.year}</p>
+          <h1>{album.title}</h1>
           <p class="album-artist">{album.artist}</p>
-
-          <div class="album-meta">
-            <div class="meta-item">
-              <span class="meta-label">Catálogo</span>
-              <span class="meta-value">{album.catalogNumber}</span>
-            </div>
-            <div class="meta-item">
-              <span class="meta-label">Periodo</span>
-              <span class="meta-value">{album.decade}</span>
-            </div>
-            <div class="meta-item">
-              <span class="meta-label">Tracks</span>
-              <span class="meta-value">{album.tracks}</span>
-            </div>
-            <div class="meta-item">
-              <span class="meta-label">Rating</span>
-              <span class="meta-value">{'★'.repeat(album.rating)}</span>
-            </div>
-          </div>
-
           <p class="album-description">{album.description}</p>
 
-          {album.trivia && (
-            <div class="album-trivia">
-              <h3 class="trivia-title">Trivia</h3>
-              <p class="trivia-question">{album.trivia.pregunta}</p>
-              <div class="trivia-options">
-                {album.trivia.opciones.map((opcion, index) => (
-                  <button
-                    class="trivia-option"
-                    data-index={index}
-                    data-correct={opcion.esCorrecta}
-                  >
-                    {opcion.texto}
-                  </button>
-                ))}
-              </div>
-              <div class="trivia-result hidden" id="trivia-result">
-                <p id="trivia-message"></p>
-              </div>
-            </div>
-          )}
+          <div class="album-meta">
+            <div><span>Sello</span><strong>{album.label}</strong></div>
+            <div><span>Catalogo</span><strong>{album.catalogNumber}</strong></div>
+            <div><span>Publicado</span><strong>{album.year}</strong></div>
+            <div><span>Grabado</span><strong>{album.recorded}</strong></div>
+            <div><span>Temas</span><strong>{album.tracks}</strong></div>
+            <div><span>Rating</span><strong>{album.rating}/5</strong></div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Related Albums -->
+      {album.trivia?.length > 0 && (
+        <section class="section-block">
+          <div class="section-head">
+            <h2>Trivia</h2>
+            <span id="trivia-score">0 / {album.trivia.length} correctas</span>
+          </div>
+
+          <div class="trivia-list">
+            {album.trivia.map((question, questionIndex) => (
+              <article class="trivia-item" data-question-index={questionIndex}>
+                <p class="trivia-number">Pregunta {questionIndex + 1}</p>
+                <p class="trivia-question">{question.pregunta}</p>
+                <div class="trivia-options">
+                  {question.opciones.map((option, optionIndex) => (
+                    <button
+                      class="trivia-option"
+                      data-index={optionIndex}
+                      data-correct={option.esCorrecta}
+                    >
+                      {option.texto}
+                    </button>
+                  ))}
+                </div>
+                <p class="trivia-feedback hidden"></p>
+              </article>
+            ))}
+          </div>
+
+          <div class="trivia-result hidden" id="trivia-result">
+            <p id="trivia-message"></p>
+          </div>
+        </section>
+      )}
+
       {relatedAlbums.length > 0 && (
-        <section class="related-section">
-          <h2>Más de {album.artist}</h2>
+        <section class="section-block">
+          <div class="section-head">
+            <h2>Mas de {album.artist}</h2>
+          </div>
           <div class="related-grid">
             {relatedAlbums.map((relatedAlbum) => (
               <a href={`/album/${relatedAlbum.id}`} class="related-card">
-                <div class="related-cover">
-                  <img
-                    src="/placeholder.svg"
-                    alt={relatedAlbum.title}
-                    data-artist={relatedAlbum.artist}
-                    data-album={relatedAlbum.title}
-                  />
-                </div>
-                <div class="related-info">
-                  <h3>{relatedAlbum.title}</h3>
-                  <p>{relatedAlbum.year}</p>
+                <img
+                  src="/placeholder.svg"
+                  alt={relatedAlbum.title}
+                  data-artist={relatedAlbum.artist}
+                  data-album={relatedAlbum.title}
+                />
+                <div>
+                  <strong>{relatedAlbum.title}</strong>
+                  <span>{relatedAlbum.year}</span>
                 </div>
               </a>
             ))}
@@ -110,19 +106,17 @@ const relatedAlbums = albums
         </section>
       )}
     </div>
-  </div>
+  </main>
 </Layout>
 
-<script define:vars={{ LASTFM_KEY, album, albums }}>
-  // Intentar obtener imagen con diferentes nombres para casos especiales
+<script define:vars={{ LASTFM_KEY, albums }}>
   async function fetchAlbumImage(artist, searchTitle) {
     const titles = [searchTitle];
-    
-    // Para "In And Out" de Joe Henderson, intentar variaciones
+
     if (searchTitle.toLowerCase().includes('in') && searchTitle.toLowerCase().includes('out')) {
       titles.push('In And Out', 'In n Out', "In 'n' Out");
     }
-    
+
     for (const title of titles) {
       try {
         const url = `https://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=${LASTFM_KEY}&artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(title)}&format=json`;
@@ -131,57 +125,39 @@ const relatedAlbums = albums
         const images = data?.album?.image;
 
         if (images && images.length > 0) {
-          // Obtener la imagen más grande disponible
-          let largestImage = '';
-          let largestSize = 0;
-          
-          for (const img of images) {
-            const src = img['#text'];
-            if (src && src.length > largestSize) {
-              largestSize = src.length;
-              largestImage = src;
-            }
-          }
-          
-          if (largestImage) {
-            return largestImage;
-          }
+          const src = images[images.length - 1]['#text'];
+          if (src) return src;
         }
-      } catch (err) {
-        console.error(`Error fetching ${title}:`, err);
-      }
+      } catch (_) {}
     }
-    
+
     return null;
   }
 
   async function loadCover() {
     const img = document.getElementById('album-image');
+    if (!img) return;
+
     const artist = img.dataset.artist;
     const titleFromData = img.dataset.album;
-    
-    // Usar lastfmTitle si está disponible
-    const albumData = albums.find(a => a.title === titleFromData && a.artist === artist);
+    const albumData = albums.find((entry) => entry.title === titleFromData && entry.artist === artist);
     const searchTitle = albumData?.lastfmTitle || titleFromData;
-
     const src = await fetchAlbumImage(artist, searchTitle);
+
     if (src) {
       img.src = src;
       img.classList.add('loaded');
     }
   }
 
-  // Load covers for related albums
   function loadRelatedCovers() {
-    document.querySelectorAll('.related-cover img').forEach(async (img) => {
+    document.querySelectorAll('.related-card img').forEach(async (img) => {
       const artist = img.dataset.artist;
       const titleFromData = img.dataset.album;
-      
-      // Usar lastfmTitle si está disponible
-      const albumData = albums.find(a => a.title === titleFromData && a.artist === artist);
+      const albumData = albums.find((entry) => entry.title === titleFromData && entry.artist === artist);
       const searchTitle = albumData?.lastfmTitle || titleFromData;
-
       const src = await fetchAlbumImage(artist, searchTitle);
+
       if (src) {
         img.src = src;
         img.classList.add('loaded');
@@ -189,31 +165,62 @@ const relatedAlbums = albums
     });
   }
 
-  // Trivia Game
   function initTrivia() {
-    const triviaOptions = document.querySelectorAll('.trivia-option');
+    const triviaItems = document.querySelectorAll('.trivia-item');
+    const triviaScore = document.getElementById('trivia-score');
     const triviaResult = document.getElementById('trivia-result');
     const triviaMessage = document.getElementById('trivia-message');
 
-    triviaOptions.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const isCorrect = btn.dataset.correct === 'true';
-        
-        // Deshabilitar todos los botones
-        triviaOptions.forEach(b => b.disabled = true);
+    if (!triviaItems.length || !triviaScore || !triviaResult || !triviaMessage) return;
 
-        if (isCorrect) {
-          btn.classList.add('correct');
-          triviaMessage.innerHTML = '✓ ¡Correcto! Excelente.';
-          triviaResult.classList.remove('hidden');
-        } else {
-          btn.classList.add('incorrect');
-          const correctOption = Array.from(triviaOptions).find(b => b.dataset.correct === 'true');
-          triviaMessage.innerHTML = `✗ Incorrecto. La respuesta correcta es: <strong>${correctOption.textContent}</strong>`;
-          triviaResult.classList.remove('hidden');
-        }
+    let answered = 0;
+    let correct = 0;
+    const total = triviaItems.length;
+
+    function updateScore() {
+      triviaScore.textContent = `${correct} / ${total} correctas`;
+    }
+
+    triviaItems.forEach((item) => {
+      const buttons = item.querySelectorAll('.trivia-option');
+      const feedback = item.querySelector('.trivia-feedback');
+
+      buttons.forEach((button) => {
+        button.addEventListener('click', () => {
+          if (item.dataset.done === 'true') return;
+
+          item.dataset.done = 'true';
+          answered += 1;
+
+          const isCorrect = button.dataset.correct === 'true';
+          const correctButton = Array.from(buttons).find((entry) => entry.dataset.correct === 'true');
+
+          buttons.forEach((entry) => {
+            entry.disabled = true;
+            if (entry.dataset.correct === 'true') entry.classList.add('ok');
+          });
+
+          if (isCorrect) {
+            correct += 1;
+            button.classList.add('ok');
+            feedback.textContent = 'Correcta.';
+          } else {
+            button.classList.add('bad');
+            feedback.innerHTML = `Incorrecta. La correcta es <strong>${correctButton?.textContent ?? ''}</strong>.`;
+          }
+
+          feedback.classList.remove('hidden');
+          updateScore();
+
+          if (answered === total) {
+            triviaMessage.textContent = `Terminaste la trivia con ${correct} de ${total} respuestas correctas.`;
+            triviaResult.classList.remove('hidden');
+          }
+        });
       });
     });
+
+    updateScore();
   }
 
   loadCover();
@@ -222,51 +229,39 @@ const relatedAlbums = albums
 </script>
 
 <style>
-  .album-detail {
-    min-height: 100vh;
-    padding: 10rem 0 6rem;
+  .album-page {
+    padding: 2.5rem 0 4rem;
   }
 
-  .btn-back {
+  .back-link {
     display: inline-block;
-    font-family: var(--mono);
-    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
     color: var(--blue-light);
-    margin-bottom: 3rem;
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--border);
-    transition: all var(--ease);
+    font-size: 0.95rem;
   }
 
-  .btn-back:hover {
-    border-color: var(--blue-light);
-    background: rgba(77, 148, 255, 0.05);
-  }
-
-  .album-hero {
+  .album-main {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-    margin-bottom: 5rem;
+    grid-template-columns: minmax(260px, 360px) 1fr;
+    gap: 2rem;
     align-items: start;
   }
 
   .album-cover {
-    position: sticky;
-    top: 8rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
   }
 
-  .album-img {
+  .album-image {
     width: 100%;
     aspect-ratio: 1;
     object-fit: cover;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
     opacity: 0;
-    transition: opacity 0.5s ease;
+    transition: opacity 0.3s ease;
   }
 
-  .album-img.loaded {
+  .album-image.loaded,
+  .related-card img.loaded {
     opacity: 1;
   }
 
@@ -274,237 +269,194 @@ const relatedAlbums = albums
     font-family: var(--mono);
     font-size: 0.75rem;
     color: var(--blue-light);
-    letter-spacing: 0.15em;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     text-transform: uppercase;
   }
 
-  .album-title {
-    font-size: 3rem;
-    font-weight: 700;
-    line-height: 1.1;
-    margin-bottom: 0.5rem;
-    color: var(--text);
+  .album-content h1 {
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    line-height: 1.05;
+    margin-bottom: 0.25rem;
   }
 
   .album-artist {
-    font-size: 1.3rem;
     color: var(--text-sub);
-    margin-bottom: 2rem;
-    font-weight: 500;
+    margin-bottom: 1rem;
+    font-size: 1.05rem;
+  }
+
+  .album-description {
+    color: var(--text-sub);
+    margin-bottom: 1.5rem;
+    max-width: 720px;
   }
 
   .album-meta {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    padding: 2rem 0;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.75rem;
   }
 
-  .meta-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
+  .album-meta div,
+  .section-block,
+  .related-card {
+    border: 1px solid var(--border);
+    background: var(--bg-card);
   }
 
-  .meta-label {
-    font-family: var(--mono);
-    font-size: 0.7rem;
+  .album-meta div {
+    padding: 0.85rem;
+  }
+
+  .album-meta span {
+    display: block;
+    font-size: 0.72rem;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    margin-bottom: 0.35rem;
+    font-family: var(--mono);
   }
 
-  .meta-value {
-    font-size: 1.1rem;
+  .album-meta strong {
+    font-size: 0.95rem;
     color: var(--text);
-    font-weight: 600;
   }
 
-  .album-description {
-    font-size: 1rem;
-    line-height: 1.8;
-    color: var(--text-sub);
+  .section-block {
+    margin-top: 2rem;
+    padding: 1.25rem;
   }
 
-  .album-trivia {
-    margin-top: 2.5rem;
-    padding: 2rem;
-    background: rgba(77, 148, 255, 0.05);
-    border: 1px solid var(--border-hover);
-    border-radius: 4px;
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
   }
 
-  .trivia-title {
-    font-size: 0.9rem;
+  .section-head h2 {
+    font-size: 1.1rem;
+  }
+
+  .section-head span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: var(--mono);
+  }
+
+  .trivia-list {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .trivia-item {
+    padding: 1rem;
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .trivia-number {
+    font-size: 0.72rem;
+    color: var(--text-muted);
     font-family: var(--mono);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--blue-light);
-    margin-bottom: 1.2rem;
+    margin-bottom: 0.5rem;
   }
 
   .trivia-question {
-    font-size: 1rem;
-    line-height: 1.6;
-    color: var(--text);
-    margin-bottom: 1.5rem;
-    font-weight: 500;
+    margin-bottom: 0.75rem;
   }
 
   .trivia-options {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-    margin-bottom: 1.5rem;
+    display: grid;
+    gap: 0.6rem;
   }
 
   .trivia-option {
     text-align: left;
-    padding: 1rem;
-    background: var(--bg-card);
+    padding: 0.8rem 0.9rem;
     border: 1px solid var(--border);
+    background: var(--bg-card);
     color: var(--text);
-    font-family: var(--font);
-    font-size: 0.95rem;
     cursor: pointer;
-    transition: all var(--ease);
-    border-radius: 2px;
   }
 
   .trivia-option:hover:not(:disabled) {
-    background: var(--bg-hover);
     border-color: var(--blue-light);
   }
 
   .trivia-option:disabled {
-    cursor: not-allowed;
-    opacity: 0.7;
+    cursor: default;
+    opacity: 0.8;
   }
 
-  .trivia-option.correct {
-    background: rgba(76, 175, 80, 0.1);
+  .trivia-option.ok {
     border-color: #4caf50;
-    color: #4caf50;
+    background: rgba(76, 175, 80, 0.08);
   }
 
-  .trivia-option.incorrect {
-    background: rgba(244, 67, 54, 0.1);
+  .trivia-option.bad {
     border-color: #f44336;
-    color: #f44336;
+    background: rgba(244, 67, 54, 0.08);
+  }
+
+  .trivia-feedback {
+    margin-top: 0.7rem;
+    color: var(--text-sub);
+    font-size: 0.92rem;
   }
 
   .trivia-result {
-    padding: 1rem;
-    background: rgba(77, 148, 255, 0.1);
-    border-left: 3px solid var(--blue-light);
-    border-radius: 2px;
-    font-size: 0.95rem;
+    margin-top: 1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border);
     color: var(--text-sub);
-  }
-
-  .trivia-result p {
-    margin: 0;
-  }
-
-  .trivia-result strong {
-    color: var(--text);
-  }
-
-  /* Related Section */
-  .related-section {
-    margin-top: 5rem;
-    padding-top: 3rem;
-    border-top: 1px solid var(--border);
-  }
-
-  .related-section h2 {
-    font-size: 1.8rem;
-    margin-bottom: 2rem;
-    color: var(--text);
   }
 
   .related-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 1rem;
   }
 
   .related-card {
-    text-decoration: none;
-    transition: transform var(--ease);
-  }
-
-  .related-card:hover {
-    transform: translateY(-4px);
-  }
-
-  .related-cover {
-    aspect-ratio: 1;
+    display: block;
     overflow: hidden;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    margin-bottom: 1rem;
   }
 
-  .related-cover img {
+  .related-card img {
     width: 100%;
-    height: 100%;
+    aspect-ratio: 1;
     object-fit: cover;
+    background: var(--bg);
     opacity: 0;
-    transition: opacity 0.5s ease;
+    transition: opacity 0.3s ease;
   }
 
-  .related-cover img.loaded {
-    opacity: 1;
+  .related-card div {
+    padding: 0.85rem;
   }
 
-  .related-info h3 {
-    font-size: 0.95rem;
-    font-weight: 700;
+  .related-card strong {
+    display: block;
+    margin-bottom: 0.2rem;
     color: var(--text);
-    line-height: 1.2;
-    margin-bottom: 0.25rem;
   }
 
-  .related-info p {
-    font-size: 0.8rem;
+  .related-card span {
     color: var(--text-muted);
+    font-size: 0.85rem;
   }
 
-  /* Responsive */
-  @media (max-width: 768px) {
-    .album-detail {
-      padding: 6rem 0 4rem;
-    }
-
-    .album-hero {
-      grid-template-columns: 1fr;
-      gap: 2rem;
-    }
-
-    .album-cover {
-      position: relative;
-      top: 0;
-    }
-
-    .album-title {
-      font-size: 2rem;
-    }
-
-    .album-artist {
-      font-size: 1.1rem;
-    }
-
-    .album-meta {
+  @media (max-width: 860px) {
+    .album-main {
       grid-template-columns: 1fr;
     }
 
-    .related-grid {
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    .section-head {
+      flex-direction: column;
+      align-items: flex-start;
     }
   }
 </style>

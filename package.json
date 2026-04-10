@@ -1,6 +1,8 @@
 {
-  "dependencies": {
-    "astro": "^6.1.1",
-    "node": "^25.8.2"
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix absent-antimatter run dev",
+    "build": "npm --prefix absent-antimatter run build",
+    "preview": "npm --prefix absent-antimatter run preview"
   }
 }

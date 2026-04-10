@@ -1,43 +1,19 @@
-# Astro Starter Kit: Minimal
+# Blue Note Catalog
 
-```sh
-npm create astro@latest -- --template minimal
+TP simple hecho con Astro para mostrar 30 albumes de jazz de Blue Note y artistas relacionados.
+Tiene un catalogo con buscador, filtros, fotos de los albumes y una trivia corta en cada ficha.
+para el hehco de poner la imagen de los albumes, parte de la dispocion y diseño me ayude 
+
+## Correr el proyecto
+
+Desde la raiz del repo:
+
+```bash
+npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Tambien podes entrar a `absent-antimatter` y correr:
 
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```bash
+npm run dev
 ```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
